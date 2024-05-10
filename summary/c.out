@@ -1,0 +1,20 @@
+mode: set
+urlshortener/summary/summary.go:12.59,14.33 1 1
+urlshortener/summary/summary.go:14.33,16.35 1 1
+urlshortener/summary/summary.go:16.35,19.4 1 1
+urlshortener/summary/summary.go:22.2,22.37 1 1
+urlshortener/summary/summary.go:27.55,31.25 3 0
+urlshortener/summary/summary.go:31.25,34.3 1 0
+urlshortener/summary/summary.go:36.2,38.22 2 0
+urlshortener/summary/summary.go:38.22,41.3 1 0
+urlshortener/summary/summary.go:43.2,43.44 1 0
+urlshortener/summary/summary.go:43.44,46.3 1 0
+urlshortener/summary/summary.go:48.6,50.27 2 0
+urlshortener/summary/summary.go:50.27,53.4 1 0
+urlshortener/summary/summary.go:55.3,57.13 2 0
+urlshortener/summary/summary.go:57.13,61.29 2 0
+urlshortener/summary/summary.go:61.29,63.18 1 0
+urlshortener/summary/summary.go:63.18,65.10 1 0
+urlshortener/summary/summary.go:68.4,70.17 2 0
+urlshortener/summary/summary.go:70.17,73.5 1 0
+urlshortener/summary/summary.go:78.4,87.12 5 0

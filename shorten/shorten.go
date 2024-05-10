@@ -2,89 +2,116 @@ package shorten
 
 import (
 	"fmt"
-	"net/http"
+	"time"
+	"urlshortener/constant"
+	"urlshortener/database"
+	"urlshortener/logger"
 	"urlshortener/shortkey"
-	
+	"urlshortener/types"
 )
 
-var Urls=make(map[string]string)
-var Urls1=make(map[string]int)
+// import (
+// 	"net/http"
+// )
 
-func checkValue(originalUrl string,Urls map[string]string)(bool,string,string){
+func ShortenUrl(originalUrl string) string {
 
-	for key,value:=range Urls{
+	zapLog := logger.GetLogger()
 
-		 if value == originalUrl{
+	// if r.Method != http.MethodPost {
 
-			  return true,key,value
-		 }
+	// 	http.Error(w, "Invalid Request Method", http.StatusMethodNotAllowed)
+
+	// 	zapLog.Error("Invalid Request Method")
+
+	// 	return
+	// }
+
+	// originalUrl := r.FormValue("url")
+
+	// zapLog.Info("Printing Original Url handle", zap.Any("OriginalUrl : ", originalUrl))
+
+	// if originalUrl == "" {
+
+	// 	http.Error(w, "Url parameter is missing", http.StatusBadRequest)
+	// 	zapLog.Error("Url Parameter is missing")
+	// 	return
+	// }
+
+	record, err := database.Mgr.GetUrlFromOriginalString(originalUrl, constant.UrlCollection)
+
+	if err != nil {
+
+		// http.Error(w, "Error Occured in recieving Record", http.StatusNotFound)
+
+		zapLog.Error("Error Occured in receiving Record")
 	}
 
-	return false,"",""
-}
+	if record.LongUrl == "" {
 
-func HandleShorten(w http.ResponseWriter,r *http.Request){
+		var url types.UrlDb
 
-	if r.Method != http.MethodPost{
+		Skey := shortkey.GenerateShortKey()
 
-		http.Error(w,"Invalid Request Method",http.StatusMethodNotAllowed)
-		return 
+		ShortendUrl := fmt.Sprintf("http://localhost:8000/short/%s", Skey)
+
+		url.CreatedAt = time.Now().Unix()
+		url.ExpiredAt = time.Now().Unix()
+
+		url.UrlCode = Skey
+
+		url.LongUrl = originalUrl
+
+		url.ShortUrl = ShortendUrl
+
+		url.Count = 1
+
+		_, err := database.Mgr.Insert(url, constant.UrlCollection)
+
+		if err != nil {
+
+			// http.Error(w, "Error Occured While Inserting Record", http.StatusInternalServerError)
+
+			zapLog.Error("Error Occurred While Inserting Record")
+		}
+
+		record, err := database.Mgr.GetUrlFromOriginalString(originalUrl, constant.UrlCollection)
+
+		if err != nil {
+
+			// http.Error(w, "Error Occured in recieving Record", http.StatusNotFound)
+
+			zapLog.Error("Error Occured in receiving Record")
+		}
+
+		// response := fmt.Sprintf("The Original Url is : %v \n The Shortened Url is %v \n ", record.LongUrl, record.ShortUrl)
+
+		// zapLog.Info("The response is", zap.Any("Response : ", response))
+
+		// fmt.Fprintln(w, response)
+
+		return record.ShortUrl
+
+	} else {
+
+		count := record.Count
+
+		newCount := count + 1
+
+		err:= database.Mgr.UpdateCount(newCount, originalUrl)
+
+		if err != nil {
+
+			// http.Error(w, "Error Occured while Updating Count", http.StatusInternalServerError)
+			zapLog.Error("Error Occured while Updating")
+		}
+
+		// response := fmt.Sprintf("The Original Url is : %v \n The Shortened Url is %v \n ", record.LongUrl, record.ShortUrl)
+		// zapLog.Info("The response is", zap.Any("Response : ", response))
+		// fmt.Fprintln(w, response)
+
+		return record.ShortUrl
+
 	}
 
-	
-	originalUrl:=r.FormValue("url")
-
-	if originalUrl == ""{
-
-		http.Error(w,"Url parameter is missing",http.StatusBadRequest)
-		return 
-	}
-
-	check,key,value:=checkValue(originalUrl,Urls)
-
-	 if check==true{
-		
-           Urls1[value]++
-			w.Header().Set("Content-Type","text/html")
-		    fmt.Fprint(w, `
-				<!DOCTYPE html>
-				<html>
-				<head>
-					<title>URL Shortener</title>
-				</head>
-				<body>
-					<h2>URL Shortener</h2>
-					<p>Original URL: `,originalUrl,`</p>
-					<p>Shortened URL:<a href="http://localhost:3030/short/`, key, `">http://localhost:3030/short/`, key, `</a></p>
-				</body>
-				</html>
-		`)
-
-          
-	 }else{
-
-		shortkey:=shortkey.GenerateShortKey()
-	
-		Urls[shortkey]=originalUrl
-		
-		// fmt.Println("The Value of Map is : ",Urls)
-	
-		shortendUrl:=fmt.Sprintf("http://localhost:3030/short/%s",shortkey)
-	
-		w.Header().Set("Content-Type","text/html")
-		fmt.Fprint(w, `
-			<!DOCTYPE html>
-			<html>
-			<head>
-				<title>URL Shortener</title>
-			</head>
-			<body>
-				<h2>URL Shortener</h2>
-				<p>Original URL: `,originalUrl,`</p>
-				<p>Shortened URL: <a href="`, shortendUrl, `">`, shortendUrl, `</a></p>
-			</body>
-			</html>
-		`)
-
-	 }
 }

@@ -2,28 +2,41 @@ package redirectapi
 
 import (
 	"net/http"
-	"strings"
-	"urlshortener/shorten"
+
+	"urlshortener/constant"
+	"urlshortener/database"
+	"urlshortener/logger"
+
+	"github.com/gorilla/mux"
+
+	"go.uber.org/zap"
 )
-func HandleRedirect(w http.ResponseWriter,r *http.Request){
 
-	shortkey:=strings.TrimPrefix(r.URL.Path,"/short/")
+func GoToOriginalPage(w http.ResponseWriter, r *http.Request) {
 
-	if shortkey == ""{
+	vars := mux.Vars(r)
 
-		http.Error(w,"Shortened Key is Missing",http.StatusBadRequest)
-		return
+	Shortkey := vars["id"]
+
+	if Shortkey == ""{
+
+		http.Error(w,"Key is Missing",http.StatusNotFound)
 	}
 
-	originalUrl,found:=shorten.Urls[shortkey]
+	zapLog := logger.GetLogger()
 
-	if !found{
+	zapLog.Info("The value of shortkey is", zap.Any("shortKey : ", Shortkey))
 
-		http.Error(w, "Shortened key not found", http.StatusNotFound)
-		return
+	record, err := database.Mgr.GetUrlFromCode(Shortkey, constant.UrlCollection)
+
+	if err != nil{
+
+		http.Error(w,"Error Occured while fetching shortkey",http.StatusNotFound)
+		zapLog.Error("Error Occured while fetching shortkey")
 	}
+    
+	zapLog.Info("The Value of OriginalUrl is",zap.Any("OriginalUrl : ",record.LongUrl))
 
-	http.Redirect(w,r,originalUrl,http.StatusMovedPermanently)
-
+	http.Redirect(w,r,record.LongUrl,http.StatusFound)
 
 }

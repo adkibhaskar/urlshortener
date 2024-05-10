@@ -2,66 +2,56 @@ package summary
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
-	"sort"
 	"strings"
-	"urlshortener/shorten"
+	"urlshortener/database"
+	"urlshortener/logger"
+	
+
+	"go.uber.org/zap"
 )
 
-func GetSummary(w http.ResponseWriter,r *http.Request){
-    urls:=shorten.Urls
-	urls1:=shorten.Urls1
+func GetSummary(w http.ResponseWriter, r *http.Request) {
 
-	for _,value:=range urls{
+	zapLog := logger.GetLogger()
 
-		urls1[value]++
-	}
+	// var urls []types.UrlDb
 
-	keys:=make([]string,0,len(urls))
+	urls := database.Mgr.SortDocument()
 
-	for key:=range urls1{
+	count := 0
 
-		keys=append(keys, key)
-	}
+	for count < 3 {
 
-	sort.SliceStable(keys,func(i, j int) bool {
+		urlFromDB := urls[count].LongUrl
 
-		return urls1[keys[i]] > urls1[keys[j]]
-	})
+		url, err := url.Parse(urlFromDB)
 
-	 
-	count:=0
+		if err != nil {
 
-	for key,value:=range urls1{
+			zapLog.Error("Error Occured", zap.Any("Error : ", err))
 
-		if count == 3 {
-
-			break
-		}
-        
-		url,err:=url.Parse(key)
-
-		if err != nil{
-
-			log.Fatal(err)
 		}
 
+		zapLog.Info("The value of url is", zap.Any("url : ", url))
 
-		// fmt.Println(url.Hostname())
+		zapLog.Info("The HostName is", zap.Any("HostName : ", url.Hostname()))
 
-		parts:=strings.Split(url.Hostname() , ".")
+		parts := strings.Split(url.Hostname(), ".")
 
-		// fmt.Println("The value of parts is : ",parts)
+		zapLog.Info("The Value of parts is", zap.Any("Parts : ", parts))
 
-		domain:=parts[len(parts)-2]
+		domain := parts[len(parts)-2]
 
-	    results:=fmt.Sprintf("%v : %d",domain,value)
-		fmt.Fprintln(w,results)
-		
-		count ++;
+		results := fmt.Sprintf("%v : %d", domain, urls[count].Count)
+
+		zapLog.Info("The Value of Results is", zap.Any("Results : ", results))
+
+		fmt.Fprintln(w, results)
+
+		count++
+
+	}
+
 }
-
-}
-

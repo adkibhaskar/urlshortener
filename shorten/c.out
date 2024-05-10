@@ -1,0 +1,12 @@
+mode: set
+urlshortener/shorten/shorten.go:15.86,17.27 1 1
+urlshortener/shorten/shorten.go:17.27,19.27 1 1
+urlshortener/shorten/shorten.go:19.27,22.5 1 1
+urlshortener/shorten/shorten.go:25.2,25.45 1 1
+urlshortener/shorten/shorten.go:28.58,30.32 1 1
+urlshortener/shorten/shorten.go:30.32,34.3 2 1
+urlshortener/shorten/shorten.go:37.2,39.22 2 1
+urlshortener/shorten/shorten.go:39.22,43.3 2 1
+urlshortener/shorten/shorten.go:45.2,47.17 2 0
+urlshortener/shorten/shorten.go:47.17,66.4 3 0
+urlshortener/shorten/shorten.go:66.8,93.4 5 0
